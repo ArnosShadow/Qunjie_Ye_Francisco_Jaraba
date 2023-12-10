@@ -30,6 +30,7 @@ unsigned int* conversorDecimalBinario(unsigned int* decimal);
 void ParsearDireccion(unsigned int addr, int *ETQ, int*palabra, int *linea, int *bloque);
 int conversorBinarioADecimal(int* binario, int inicio, int fin) ;
 void TratarFallo(T_CACHE_LINE *tbl, char *MRAM, int ETQ,int linea, int bloque);
+void VolcarCACHE(T_CACHE_LINE *tbl);
 
 int globaltime = 0;
 int numfallos = 0;
@@ -101,7 +102,8 @@ int main(int argc, char* argv[]){
 	//PRINTEAMOS LOS DATOS
 	printf("Accesos totales: %d; fallos %d; tiempo medio  %f \n",struct_direcciones.num_direcciones_memoria, numfallos, (float)((float)globaltime/14));
 	printf("El texto es %s", texto);
-	
+	//VOLCAMOS LOS DATOS AL FICHERO "CONTENTS_CACHE.bin"
+	VolcarCACHE(cache);
 	
 }
 
@@ -220,6 +222,20 @@ void TratarFallo(T_CACHE_LINE *tbl, char *MRAM, int ETQ, int linea, int bloque){
 	}
 }
 
+//FUNCION VOLCAR CACHE
+void VolcarCACHE(T_CACHE_LINE *tbl){
+	FILE* fichero;
+	int* binario;
+	fichero = fopen( "CONTENTS_CACHE.bin" , "w");
+	for(int i=0;i<TAM_RAM;i++){
+		 fprintf(fichero, "FILA %d %02x\t",i ,tbl[i].ETQ);
+		 for(int t=0;t<TAM_LINEA;t++){
+		 	fprintf(fichero, " %02X ",tbl[i].Data[t]);
+		 }
+		 fprintf(fichero, "\n");
+	}
+	fclose(fichero);
+}
 
 
 
