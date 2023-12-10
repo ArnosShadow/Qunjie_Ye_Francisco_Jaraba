@@ -216,7 +216,6 @@ void TratarFallo(T_CACHE_LINE *tbl, char *MRAM, int ETQ, int linea, int bloque){
   	int cont=0;
     tbl[linea].ETQ=ETQ;
 	for(int i= TAM_LINEA*bloque+15;i>=TAM_LINEA*bloque;i--){
-		printf("%c", MRAM[i]);
 		tbl[linea].Data[cont]=MRAM[i];
 		cont++;
 	}
