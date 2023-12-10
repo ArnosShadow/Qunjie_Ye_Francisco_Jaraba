@@ -25,6 +25,7 @@ void LimpiarCACHE(T_CACHE_LINE tbl[NUM_LINEAS_CACHE]);
 void leerFichero(FILE* descriptor, char linea[]);
 char *leelineaDinamicaFichero (FILE *fd);
 unsigned char** leerLineasDinamicasFicheo(FILE* descriptor, int *i);
+void conversorHexadecimalDecimal(unsigned char* hexa, unsigned int* addr);
 
 int globaltime = 0;
 int numfallos = 0;
@@ -60,7 +61,9 @@ int main(int argc, char* argv[]){
 	}
 	
 	
-   
+    for(int i=0; i<struct_direcciones.num_direcciones_memoria;i++){
+        conversorHexadecimalDecimal(struct_direcciones.direcciones_memoria_hex[i],&addr);
+    }
 	
 	
 }
@@ -125,6 +128,14 @@ unsigned char** leerLineasDinamicasFicheo(FILE* descriptor, int *i){
 	lineas[*i]='\0';
 	return lineas;
 }
+
+//CONVERSOR DE HEXADECIMAL A DECIMAL
+void conversorHexadecimalDecimal(unsigned char* hexa, unsigned int *addr){
+    *addr = strtol(hexa, NULL, TAM_LINEA);
+}
+
+
+
 
 
 
