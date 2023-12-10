@@ -21,6 +21,7 @@ typedef  struct
 }STRUCT_DIRECCIONES;
 
 int existeFichero(char* str);
+void LimpiarCACHE(T_CACHE_LINE tbl[NUM_LINEAS_CACHE]);
 void leerFichero(FILE* descriptor, char linea[]);
 char *leelineaDinamicaFichero (FILE *fd);
 unsigned char** leerLineasDinamicasFicheo(FILE* descriptor, int *i);
@@ -34,6 +35,7 @@ int main(int argc, char* argv[]){
 	
     //INICIALIZAMOS TODAS LAS VARIABLES
     T_CACHE_LINE cache[NUM_LINEAS_CACHE];
+    LimpiarCACHE(cache);
 	FILE* fichero;
     unsigned char Simul_RAM[TAM_RAM];
 	STRUCT_DIRECCIONES struct_direcciones;
@@ -75,7 +77,16 @@ int existeFichero(char* str){
 	return i;
 }
 
-
+//INICIALIZA EL CACHE
+void LimpiarCACHE(T_CACHE_LINE tbl[NUM_LINEAS_CACHE]){
+    for(int j=0; j<NUM_LINEAS_CACHE;j++){
+        tbl[j].ETQ=0xFF;
+        for(int i=0; i<TAM_LINEA;i++){
+            tbl[j].Data[i]=0x23;
+        }
+		tbl[j].Data[TAM_LINEA]='\0';
+    }
+}
 
 //LEE UNA LINEA DEL FICHERO Y TE LO DEVUELVE EN ARRAY ESTATICO
 void leerFichero(FILE* descriptor, char linea[]){
@@ -114,5 +125,6 @@ unsigned char** leerLineasDinamicasFicheo(FILE* descriptor, int *i){
 	lineas[*i]='\0';
 	return lineas;
 }
+
 
 
