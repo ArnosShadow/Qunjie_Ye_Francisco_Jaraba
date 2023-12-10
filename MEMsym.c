@@ -26,6 +26,10 @@ void leerFichero(FILE* descriptor, char linea[]);
 char *leelineaDinamicaFichero (FILE *fd);
 unsigned char** leerLineasDinamicasFicheo(FILE* descriptor, int *i);
 void conversorHexadecimalDecimal(unsigned char* hexa, unsigned int* addr);
+unsigned int* conversorDecimalBinario(unsigned int* decimal);
+void ParsearDireccion(unsigned int addr, int *ETQ, int*palabra, int *linea, int *bloque);
+int conversorBinarioADecimal(int* binario, int inicio, int fin) ;
+void TratarFallo(T_CACHE_LINE *tbl, char *MRAM, int ETQ,int linea, int bloque);
 
 int globaltime = 0;
 int numfallos = 0;
@@ -63,7 +67,40 @@ int main(int argc, char* argv[]){
 	
     for(int i=0; i<struct_direcciones.num_direcciones_memoria;i++){
         conversorHexadecimalDecimal(struct_direcciones.direcciones_memoria_hex[i],&addr);
+		ParsearDireccion(addr, &ETQ, &palabra, &linea, &bloque);
+		if(ETQ!=cache[linea].ETQ){
+			//TRATAMOS EL FALLO
+			TratarFallo(cache, Simul_RAM, ETQ,linea,  bloque);
+			numfallos++;
+			//AUMENTAMOS EL TIEMPO GLOBAL EN 20
+			globaltime=globaltime+20;
+			//ENSEÑAMOS EL FALLO
+			printf("T: %d, Fallo de CACHE %d, ADDR %04X, Label %X, linea %02X, palabra %02X, bloque %02X\n",i+1,numfallos,addr,ETQ,linea, palabra, bloque);
+		}
+			//ENSEÑAMOS DONDE SE CARGAN LOS DATOS
+			printf("Se ha cargado en el bloque %02X, en la linea %02X.\n", bloque, linea);
+			//GUARDAMOS EL ACIERTO
+			texto[aciertos]=cache[linea].Data[15-palabra];
+			printf("T: %d, Acierto de CACHE, ADDR %04X, Label%X, linea %02X, palabra %02X, DATO %c\n\n",i+1,addr,ETQ,linea, palabra, texto[aciertos]);
+			aciertos++;
+			//AUMENTAMOS EL TIEMPO GLOBAL EN 1 Y HACEMOS UN SLEEP DE 1S
+			globaltime++;
+			sleep(1);
+		
+		//ENSEÑAMOS LOS DATOS DE LA ACHE
+		for(int j=0; j<NUM_LINEAS_CACHE;j++){
+			printf("%x\t", cache[j].ETQ);
+        	for(int i=0; i<TAM_LINEA;i++){
+				printf("%x ", cache[j].Data[i]);
+        	}
+			printf("\n");
+    	}
+		printf("\n");
+        
     }
+	//PRINTEAMOS LOS DATOS
+	printf("Accesos totales: %d; fallos %d; tiempo medio  %f \n",struct_direcciones.num_direcciones_memoria, numfallos, (float)((float)globaltime/14));
+	printf("El texto es %s", texto);
 	
 	
 }
@@ -134,7 +171,54 @@ void conversorHexadecimalDecimal(unsigned char* hexa, unsigned int *addr){
     *addr = strtol(hexa, NULL, TAM_LINEA);
 }
 
+//CONVERSOR DE DECIMAL A BINARIO
+unsigned int* conversorDecimalBinario(unsigned int* decimal){
+	unsigned int* binario;
+	binario=(unsigned int*)malloc(sizeof(unsigned int)*13);
 
+	for(int i=11; i>=0;i--){
+		binario[i]=*decimal%2;
+		*decimal=*decimal/2;
+	}
+	binario[13]='\0';
+	
+	return binario;
+	
+}
+
+//CONVERSOR BINARIO A DECIMAL
+int conversorBinarioADecimal(int* binario, int inicio, int fin) {
+    int decimal = 0, exponente = 0, digito;
+
+    for (int i = inicio; i >= fin; i--) {
+        decimal =decimal+ (binario[i] * (1 << exponente));
+        exponente++;
+    }
+    return decimal;
+}
+
+//FUNCION PARSEAR DIRECCION
+void ParsearDireccion(unsigned int addr, int *ETQ, int* palabra, int* linea, int* bloque){
+	unsigned int *binario;
+	int contador=0;
+	binario=conversorDecimalBinario(&addr);
+	*ETQ=conversorBinarioADecimal(binario,4 ,0);
+	*linea=conversorBinarioADecimal(binario,7 ,5);
+	*palabra=conversorBinarioADecimal(binario,11 ,8);
+	*bloque=conversorBinarioADecimal(binario,7 ,0);
+
+}
+
+//FUNCION TRATAR FALLO
+void TratarFallo(T_CACHE_LINE *tbl, char *MRAM, int ETQ, int linea, int bloque){
+  	int cont=0;
+    tbl[linea].ETQ=ETQ;
+	for(int i= TAM_LINEA*bloque+15;i>=TAM_LINEA*bloque;i--){
+		printf("%c", MRAM[i]);
+		tbl[linea].Data[cont]=MRAM[i];
+		cont++;
+	}
+}
 
 
 
